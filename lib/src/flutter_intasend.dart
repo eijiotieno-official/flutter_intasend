@@ -15,6 +15,7 @@ class FlutterIntasend {
     String? lastName,
     String? email,
   }) async {
+    
     await IntasendAPI.createCheckOut(
       isTest: isTest,
       publicKey: publicKey,
@@ -25,6 +26,7 @@ class FlutterIntasend {
       email: email,
     ).then(
       (result) {
+        debugPrint("RESULT $result");
         if (result.isNotEmpty) {
           String url = result['url'];
           Navigator.push(

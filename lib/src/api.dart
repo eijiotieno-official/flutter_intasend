@@ -21,16 +21,12 @@ class IntasendAPI {
       "last_name": lastName,
     };
 
-    Map<String, dynamic> result = {};
-
-    sendPostRequest(
+    return await sendPostRequest(
       endPoint: "checkout/",
       payload: payload,
       publicKey: publicKey,
       test: isTest,
-    ).then((value) => result = value);
-
-    return result;
+    );
   }
 
   // static Future<Map<String, dynamic>> sendSTKPush({

@@ -30,7 +30,7 @@ class _IntasendWebViewState extends State<IntasendWebView> {
             ..setNavigationDelegate(
               NavigationDelegate(
                 onUrlChange: (change) {
-                  debugPrint(change.url);
+                  debugPrint("NEW URL ${change.url}");
                   setState(() {
                     _url = change.url;
                   });
@@ -72,12 +72,83 @@ class _IntasendWebViewState extends State<IntasendWebView> {
     );
   }
 
+  Future<bool> getElement({required String id}) async {
+    bool found = false;
+    await _webViewController?.runJavaScriptReturningResult('''
+      var element = document.getElementById('$id');
+      if (element !== null) {
+        found = true;
+      }
+    ''').then((value) {
+      setState(() {
+        found = value.toString() == null.toString() ? false : true;
+      });
+    });
+
+    return found;
+  }
+
+  // bool isCanceled = false;
+  // Future<void> handleCancelButtonClick() async {
+  //   // Check if _webViewController is not null
+  //   if (_webViewController != null) {
+  //     // Execute JavaScript code to close the modal
+  //     await _webViewController!.runJavaScript('''
+  //       var modal = document.getElementById('INTASEND-WEBSDK-MODAL-3');
+  //       if (modal !== null) {
+  //         modal.style.display = 'none';
+  //       }
+  //     ''');
+  //   }
+  //   setState(() {
+  //     isCanceled = true;
+  //   });
+  // }
+
+  void _showBackDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Are you sure?'),
+          content: const Text(
+            'Are you sure you want to leave this page?',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Never mind'),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            TextButton(
+              child: const Text('Leave'),
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: _url == widget.url,
-      onPopInvoked: (didPop) {
-        _webViewController!.goBack();
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) {
+          return;
+        }
+        bool found = await getElement(id: "INTASEND-WEBSDK-MODAL-3");
+        if (!found) {
+          _showBackDialog();
+        }
+        //  else {
+        //   handleCancelButtonClick();
+        // }
       },
       child: Scaffold(
         appBar: AppBar(
@@ -93,35 +164,6 @@ class _IntasendWebViewState extends State<IntasendWebView> {
                       child: WebViewWidget(controller: _webViewController!)),
                 ],
               ),
-        // bottomNavigationBar: BottomAppBar(
-        //   child: Row(
-        //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        //     children: <Widget>[
-        //       IconButton(
-        //         icon: const Icon(Icons.arrow_back_ios_rounded),
-        //         onPressed: () {
-        //           if (_url == widget.url) {
-        //             _showBackDialog();
-        //           } else {
-        //             _webViewController!.goBack();
-        //           }
-        //         },
-        //       ),
-        //       IconButton(
-        //         icon: const Icon(Icons.autorenew_rounded),
-        //         onPressed: () {
-        //           _webViewController!.reload();
-        //         },
-        //       ),
-        //       IconButton(
-        //         icon: const Icon(Icons.arrow_forward_ios_rounded),
-        //         onPressed: () {
-        //           _webViewController!.goForward();
-        //         },
-        //       ),
-        //     ],
-        //   ),
-        // ),
       ),
     );
   }

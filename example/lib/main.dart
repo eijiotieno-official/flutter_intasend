@@ -39,7 +39,7 @@ class _HomePageState extends State<HomePage> {
               isTest: true,
               publicKey: "ISPubKey_test_374050d7-44f3-4e20-896b-9c5fb0eed168",
               currency: Currency.kes,
-              amount: 5.0,
+              amount: 15,
             );
           },
           child: const Text("Complete Payment"),
