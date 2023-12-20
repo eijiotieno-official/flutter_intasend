@@ -1,8 +1,11 @@
 import 'package:flutter_intasend/src/utils.dart';
 
+// Import the Currency class
 import 'currency.dart';
 
+// Class for interacting with the Intasend API
 class IntasendAPI {
+  // Method to create a checkout
   static Future<Map<String, dynamic>> createCheckOut({
     required bool isTest,
     required String publicKey,
@@ -12,6 +15,7 @@ class IntasendAPI {
     String? lastName,
     String? email,
   }) async {
+    // Prepare payload for the checkout request
     final Map<String, dynamic> payload = {
       "public_key": publicKey,
       "currency": enumStringCurrency(currency: currency),
@@ -21,6 +25,7 @@ class IntasendAPI {
       "last_name": lastName,
     };
 
+    // Send a POST request to the checkout endpoint using the utility function
     return await sendPostRequest(
       endPoint: "checkout/",
       payload: payload,
@@ -28,29 +33,4 @@ class IntasendAPI {
       test: isTest,
     );
   }
-
-  // static Future<Map<String, dynamic>> sendSTKPush({
-  //   required bool isTest,
-  //   required String publicKey,
-  //   required String phoneNumber,
-  //   required double amount,
-  //   required String narrative,
-  // }) async {
-  //   final Map<String, dynamic> payload = {
-  //     'amount': amount,
-  //     'phone_number': phoneNumber,
-  //     'narrative': narrative
-  //   };
-
-  //   Map<String, dynamic> result = {};
-
-  //   sendPostRequest(
-  //     endPoint: "send-mpesa-stk-push/",
-  //     payload: payload,
-  //     publicKey: publicKey,
-  //     test: isTest,
-  //   ).then((value) => result = value);
-
-  //   return result;
-  // }
 }

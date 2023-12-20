@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+
 class IntasendWebView extends StatefulWidget {
   final String url;
   const IntasendWebView({super.key, required this.url});
@@ -8,6 +9,7 @@ class IntasendWebView extends StatefulWidget {
   @override
   State<IntasendWebView> createState() => _IntasendWebViewState();
 }
+
 
 class _IntasendWebViewState extends State<IntasendWebView> {
   String? _url;
@@ -17,6 +19,7 @@ class _IntasendWebViewState extends State<IntasendWebView> {
 
   @override
   void initState() {
+    // Initialize state variables and set up WebView
     _url = widget.url;
     super.initState();
     Future.delayed(
@@ -29,23 +32,27 @@ class _IntasendWebViewState extends State<IntasendWebView> {
             ..setBackgroundColor(const Color(0x00000000))
             ..setNavigationDelegate(
               NavigationDelegate(
+                // Callback when URL changes
                 onUrlChange: (change) {
                   debugPrint("NEW URL ${change.url}");
                   setState(() {
                     _url = change.url;
                   });
                 },
+                // Callback for page loading progress
                 onProgress: (int progress) {
                   setState(() {
                     _progress = (progress / 100).toDouble();
                     _isLoading = true;
                   });
                 },
+                // Callback when page finishes loading
                 onPageFinished: (String url) {
                   setState(() {
                     _isLoading = false;
                   });
                 },
+                // Handle web resource errors
                 onWebResourceError: (WebResourceError error) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -57,6 +64,7 @@ class _IntasendWebViewState extends State<IntasendWebView> {
                     ),
                   );
                 },
+                // Handle navigation requests
                 onNavigationRequest: (NavigationRequest request) {
                   if (request.url
                       .startsWith('https://intasend.com/security/')) {
@@ -72,6 +80,7 @@ class _IntasendWebViewState extends State<IntasendWebView> {
     );
   }
 
+  // Function to check if an element with a given ID exists on the page
   Future<bool> getElement({required String id}) async {
     bool found = false;
     await _webViewController?.runJavaScriptReturningResult('''
@@ -88,23 +97,7 @@ class _IntasendWebViewState extends State<IntasendWebView> {
     return found;
   }
 
-  // bool isCanceled = false;
-  // Future<void> handleCancelButtonClick() async {
-  //   // Check if _webViewController is not null
-  //   if (_webViewController != null) {
-  //     // Execute JavaScript code to close the modal
-  //     await _webViewController!.runJavaScript('''
-  //       var modal = document.getElementById('INTASEND-WEBSDK-MODAL-3');
-  //       if (modal !== null) {
-  //         modal.style.display = 'none';
-  //       }
-  //     ''');
-  //   }
-  //   setState(() {
-  //     isCanceled = true;
-  //   });
-  // }
-
+  // Function to show a confirmation dialog when attempting to go back
   void _showBackDialog() {
     showDialog<void>(
       context: context,
@@ -137,18 +130,18 @@ class _IntasendWebViewState extends State<IntasendWebView> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
+      // Disable system back button
       canPop: false,
       onPopInvoked: (didPop) async {
         if (didPop) {
           return;
         }
+        // Check if a specific element exists on the page
         bool found = await getElement(id: "INTASEND-WEBSDK-MODAL-3");
         if (!found) {
+          // If element doesn't exist, show the confirmation dialog
           _showBackDialog();
         }
-        //  else {
-        //   handleCancelButtonClick();
-        // }
       },
       child: Scaffold(
         appBar: AppBar(
@@ -159,9 +152,12 @@ class _IntasendWebViewState extends State<IntasendWebView> {
             ? const Center(child: CircularProgressIndicator())
             : Column(
                 children: [
+                  // Show progress indicator while loading
                   if (_isLoading) LinearProgressIndicator(value: _progress),
+                  // WebView widget to display the web content
                   Expanded(
-                      child: WebViewWidget(controller: _webViewController!)),
+                    child: WebViewWidget(controller: _webViewController!),
+                  ),
                 ],
               ),
       ),
