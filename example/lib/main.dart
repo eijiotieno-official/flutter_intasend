@@ -37,7 +37,7 @@ class _HomePageState extends State<HomePage> {
             FlutterIntasend.initCheckOut(
               context: context,
               isTest: true,
-              publicKey: "ISPubKey_test_374050d7-44f3-4e20-896b-9c5fb0eed168",
+              publicKey: "ISPubKey_test_7fc9eb9b-66dc-47b3-af11-6b51502b6075",
               currency: Currency.kes,
               amount: 15,
             );

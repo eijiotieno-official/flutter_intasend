@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-
 class IntasendWebView extends StatefulWidget {
   final String url;
   const IntasendWebView({super.key, required this.url});
@@ -10,12 +9,71 @@ class IntasendWebView extends StatefulWidget {
   State<IntasendWebView> createState() => _IntasendWebViewState();
 }
 
-
 class _IntasendWebViewState extends State<IntasendWebView> {
   String? _url;
   WebViewController? _webViewController;
   bool _isLoading = false;
   double _progress = 0;
+  void loadPage() {
+    setState(() {
+      _webViewController = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..enableZoom(false)
+        ..setBackgroundColor(const Color(0x00000000))
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            // Callback when URL changes
+            onUrlChange: (change) {
+              debugPrint("NEW URL ${change.url}");
+              setState(() {
+                _url = change.url;
+              });
+            },
+            // Callback for page loading progress
+            onProgress: (int progress) {
+              setState(() {
+                _progress = (progress / 100).toDouble();
+                _isLoading = true;
+              });
+            },
+            // Callback when page finishes loading
+            onPageFinished: (String url) {
+              setState(() {
+                _isLoading = false;
+              });
+            },
+            // Handle web resource errors
+            onWebResourceError: (WebResourceError error) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.redAccent,
+                  content: Text(
+                    error.description,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              );
+            },
+            // Handle navigation requests
+            onNavigationRequest: (NavigationRequest request) {
+              if (request.url.startsWith('https://intasend.com/security/')) {
+                return NavigationDecision.prevent;
+              }
+              return NavigationDecision.navigate;
+            },
+          ),
+        )
+        ..addJavaScriptChannel(
+          'buttonClicks',
+          onMessageReceived: (JavaScriptMessage message) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message.message)),
+            );
+          },
+        )
+        ..loadRequest(Uri.parse(_url!));
+    });
+  }
 
   @override
   void initState() {
@@ -25,57 +83,35 @@ class _IntasendWebViewState extends State<IntasendWebView> {
     Future.delayed(
       const Duration(milliseconds: 300),
       () {
-        setState(() {
-          _webViewController = WebViewController()
-            ..setJavaScriptMode(JavaScriptMode.unrestricted)
-            ..enableZoom(false)
-            ..setBackgroundColor(const Color(0x00000000))
-            ..setNavigationDelegate(
-              NavigationDelegate(
-                // Callback when URL changes
-                onUrlChange: (change) {
-                  debugPrint("NEW URL ${change.url}");
-                  setState(() {
-                    _url = change.url;
-                  });
-                },
-                // Callback for page loading progress
-                onProgress: (int progress) {
-                  setState(() {
-                    _progress = (progress / 100).toDouble();
-                    _isLoading = true;
-                  });
-                },
-                // Callback when page finishes loading
-                onPageFinished: (String url) {
-                  setState(() {
-                    _isLoading = false;
-                  });
-                },
-                // Handle web resource errors
-                onWebResourceError: (WebResourceError error) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      backgroundColor: Colors.redAccent,
-                      content: Text(
-                        error.description,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  );
-                },
-                // Handle navigation requests
-                onNavigationRequest: (NavigationRequest request) {
-                  if (request.url
-                      .startsWith('https://intasend.com/security/')) {
-                    return NavigationDecision.prevent;
-                  }
-                  return NavigationDecision.navigate;
-                },
-              ),
-            )
-            ..loadRequest(Uri.parse(_url!));
-        });
+        loadPage();
+      },
+    );
+  }
+
+  void _showCancelPaymentDialog() {
+    // Implement your logic to show the cancel payment dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Cancel Payment"),
+          content: const Text("Are you sure you want to cancel the payment?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Never mind'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                loadPage();
+              },
+              child: const Text("Cancel Payment"),
+            ),
+          ],
+        );
       },
     );
   }
@@ -141,6 +177,8 @@ class _IntasendWebViewState extends State<IntasendWebView> {
         if (!found) {
           // If element doesn't exist, show the confirmation dialog
           _showBackDialog();
+        } else {
+          _showCancelPaymentDialog();
         }
       },
       child: Scaffold(
@@ -156,8 +194,7 @@ class _IntasendWebViewState extends State<IntasendWebView> {
                   if (_isLoading) LinearProgressIndicator(value: _progress),
                   // WebView widget to display the web content
                   Expanded(
-                    child: WebViewWidget(controller: _webViewController!),
-                  ),
+                      child: WebViewWidget(controller: _webViewController!)),
                 ],
               ),
       ),

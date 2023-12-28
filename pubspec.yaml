@@ -1,7 +1,7 @@
 name: flutter_intasend
 description: "A new Flutter package project."
 version: 0.0.1
-homepage:
+homepage: https://github.com/eijiotieno-official/flutter_intasend
 
 environment:
   sdk: '>=3.2.3 <4.0.0'
@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+    
   http: ^1.1.2
   webview_flutter: ^4.4.2
 
