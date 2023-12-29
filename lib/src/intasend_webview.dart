@@ -41,6 +41,7 @@ class _IntasendWebViewState extends State<IntasendWebView> {
               setState(() {
                 _isLoading = false;
               });
+              // _injectJavaScript();
             },
             // Handle web resource errors
             onWebResourceError: (WebResourceError error) {
@@ -63,16 +64,31 @@ class _IntasendWebViewState extends State<IntasendWebView> {
             },
           ),
         )
-        ..addJavaScriptChannel(
-          'buttonClicks',
-          onMessageReceived: (JavaScriptMessage message) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(message.message)),
-            );
-          },
-        )
+        // ..addJavaScriptChannel(
+        //   'buttonClicks',
+        //   onMessageReceived: (JavaScriptMessage message) {
+        //     ScaffoldMessenger.of(context).showSnackBar(
+        //       SnackBar(content: Text(message.message)),
+        //     );
+        //   },
+        // )
         ..loadRequest(Uri.parse(_url!));
     });
+  }
+
+  void _injectJavaScript() async {
+    await getElement(id: "INTASEND-WEBSDK-MODAL-3").then(
+      (value) async {
+        if (value) {
+          await _webViewController!.runJavaScript('''
+      document.querySelector('button').addEventListener('click', function() {
+
+        alert('Button Clicked');
+      });
+    ''');
+        }
+      },
+    );
   }
 
   @override
